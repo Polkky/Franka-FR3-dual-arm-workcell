@@ -1,9 +1,21 @@
 FROM osrf/ros:jazzy-desktop-full
 
-RUN apt update && \
-    DEBIAN_FRONTEND=noninteractive apt install -y \
+RUN apt update && apt-get install -y \
+    bash-completion \
+    gdb \
+    git \
+    nano \
+    iputils-ping \
+    openssh-client \
+    ros-dev-tools \
     python3-pip \
     python3-venv \
+    python3-colcon-argcomplete \
+    python3-colcon-common-extensions \
+    sudo \
+    vim \
+    libgtest-dev \
+    libgmock-dev \
     curl \
     lsb-release \
     gnupg && \
@@ -18,6 +30,48 @@ RUN apt update && \
 
 ENV GZ_VERSION=fortress
 
-RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc
-RUN mkdir -p /up/ros2env/src/
-WORKDIR /up/ros2env
+RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc \
+    && echo "source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash" >> /home/$USERNAME/.bashrc
+
+# franka_ros2 dependencies not found in full jazzy
+RUN sudo apt-get update \
+    && sudo apt-get install -y --no-install-recommends \
+        ros-jazzy-joint-state-publisher-gui \
+        ros-jazzy-ros2controlcli \
+        ros-jazzy-controller-interface \
+        ros-jazzy-hardware-interface-testing \
+        ros-jazzy-ament-cmake-clang-format \
+        ros-jazzy-ament-cmake-clang-tidy \
+        ros-jazzy-controller-manager \
+        ros-jazzy-ros2-control-cmake \
+        ros-jazzy-control-msgs \
+        ros-jazzy-backward-ros \
+        ros-jazzy-generate-parameter-library \
+        ros-jazzy-realtime-tools \
+        ros-jazzy-joint-state-publisher \
+        ros-jazzy-joint-state-broadcaster \
+        ros-jazzy-moveit-ros-move-group \
+        ros-jazzy-moveit-kinematics \
+        ros-jazzy-moveit-planners-ompl \
+        ros-jazzy-moveit-ros-visualization \
+        ros-jazzy-joint-trajectory-controller \
+        ros-jazzy-moveit-simple-controller-manager \
+    && sudo apt-get clean \
+    && sudo rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /ros2ws/src
+WORKDIR /ros2ws
+COPY . /ros2ws/src
+
+# clone, get dependencies and build franka_ros2
+RUN git clone --branch jazzy https://github.com/frankarobotics/franka_ros2.git src/franka_ros2
+RUN vcs import src/franka_ros2 < src/franka_ros2/dependency.repos --recursive --skip-existing \
+    && sudo apt-get update \
+    && rosdep update \
+    && rosdep install --from-paths src --ignore-src --rosdistro jazzy -y --skip-keys=zed_wrapper \
+    && sudo apt-get clean \
+    && sudo rm -rf /var/lib/apt/lists/* \
+    && rm -rf /home/$USERNAME/.ros
+
+RUN bash -c "source /opt/ros/jazzy/setup.bash \
+    && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF"

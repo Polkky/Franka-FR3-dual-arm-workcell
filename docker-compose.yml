@@ -1,9 +1,5 @@
-# Docker compose file for initializing ROBO.666 environment
-# 
-#   - Ubuntu 24.04 Jammy 
-#   - ROS2 Jazzy 
-#   ROBO.400 docker setup edited for ROBO.666
-#
+#   - Ubuntu 24.04
+#   - ROS2 Jazzy
 
 services:
   ros2cont:
@@ -11,16 +7,10 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    container_name: robo666    # identifier
+    container_name: FRDualArm    # identifier
     volumes:
-      - ./ros2env/src:/up/ros2env/src      # bind the directories 
-      - /tmp/.X11-unix:/tmp/.X11-unix:rw   # enable cv2 tools 
-  #  devices:   # remove comments for adding web cameras, see instructions in README.md   
-  #    - /dev/video0:/dev/video0
-  #    - /dev/video0:/dev/video1
-  #    - /dev/video0:/dev/video2
-  #    - /dev/video0:/dev/video3
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
     environment:
-      - DISPLAY=$DISPLAY    # env. variable for display
+      - DISPLAY=$DISPLAY
 volumes: 
   ros2cont:
