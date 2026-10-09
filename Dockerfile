@@ -62,16 +62,3 @@ RUN sudo apt-get update \
 RUN mkdir -p /ros2ws/src
 WORKDIR /ros2ws
 COPY . /ros2ws/src
-
-# clone, get dependencies and build franka_ros2
-RUN git clone --branch jazzy https://github.com/frankarobotics/franka_ros2.git src/franka_ros2
-RUN vcs import src/franka_ros2 < src/franka_ros2/dependency.repos --recursive --skip-existing \
-    && sudo apt-get update \
-    && rosdep update \
-    && rosdep install --from-paths src --ignore-src --rosdistro jazzy -y --skip-keys=zed_wrapper \
-    && sudo apt-get clean \
-    && sudo rm -rf /var/lib/apt/lists/* \
-    && rm -rf /home/$USERNAME/.ros
-
-RUN bash -c "source /opt/ros/jazzy/setup.bash \
-    && colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF"

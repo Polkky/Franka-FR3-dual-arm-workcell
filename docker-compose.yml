@@ -7,9 +7,10 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    container_name: FRDualArm    # identifier
+    container_name: FRDualArm
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ./ros2ws/src:/ros2ws/src
     environment:
       - DISPLAY=$DISPLAY
 volumes: 
