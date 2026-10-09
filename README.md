@@ -28,6 +28,7 @@ In another terminal
 sudo docker exec -it FRDualArm bash
 ```
 
+Installing franka_ros2 (https://github.com/frankarobotics/franka_ros2/blob/jazzy/README.md)
 ```bash
 git clone --branch jazzy https://github.com/frankarobotics/franka_ros2.git src/franka_ros2
 ```
@@ -37,7 +38,11 @@ vcs import src/franka_ros2 < src/franka_ros2/dependency.repos --recursive --skip
 ```
 
 ```bash
-cd ..
+sudo apt-get update
+```
+
+```bash
+rosdep update
 ```
 
 ```bash
