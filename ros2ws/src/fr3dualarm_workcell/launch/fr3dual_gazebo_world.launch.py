@@ -1,3 +1,5 @@
+# This is a gazebo world test launch
+#
 # This traces the "gazebo_franka_arm_example_controller.launch.py" file implementation from franka_ros2
 # Many values have been changed to being hardcoded
 
