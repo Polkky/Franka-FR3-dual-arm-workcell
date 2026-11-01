@@ -15,7 +15,9 @@ setup(
         (os.path.join('share', package_name, 'launch'),
             glob(os.path.join('launch', '*launch.py*'))),
         (os.path.join('share', package_name, 'worlds'),
-            glob('worlds/*.sdf'))
+            glob('worlds/*.sdf')),
+        (os.path.join('share', package_name, 'config'),
+            glob('config/*.yaml'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,

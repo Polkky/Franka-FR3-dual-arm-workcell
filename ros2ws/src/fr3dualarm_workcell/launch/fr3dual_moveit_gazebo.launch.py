@@ -117,7 +117,7 @@ def generate_launch_description():
             'start_state_max_bounds_error': 0.1,
         }
     }
-    ompl_planning_yaml = controllers_yaml = load_yaml('franka_fr3_moveit_config', 'config/ompl_planning.yaml')
+    ompl_planning_yaml = load_yaml('franka_fr3_moveit_config', 'config/ompl_planning.yaml')
     ompl_planning_pipeline_config['move_group'].update(ompl_planning_yaml)
 
 
@@ -132,7 +132,8 @@ def generate_launch_description():
         name = 'rviz2',
         output = 'log',
         arguments = ['-d', rviz_path],
-        parameters = [fr3_desc, fr3_desc_semantic, ompl_planning_pipeline_config, kinematics_config],
+        parameters = [fr3_desc, fr3_desc_semantic, ompl_planning_pipeline_config, kinematics_config,
+        {'use_sim_time': True}],
     )
     # Unused for simulation:
     #franka_robot_state_broadcaster = Node(
@@ -143,41 +144,45 @@ def generate_launch_description():
     #)
     # May also need IP address (?) when moving to real
 
+    # placeholder solution for arm controller
+    arm_controller = os.path.join(
+        get_package_share_directory('fr3dualarm_workcell'),
+        'config',
+        'fr3dual_controllers.yaml'
+    )
+
     load_controllers = [
         ExecuteProcess(
             cmd = [
-                'ros2', 'run', 'controller_manager',
-                'spawner', 'joint_state_broadcaster',
-                '--controller-manager-timeout', '30'
+                'ros2', 'run', 'controller_manager', 'spawner', 'joint_state_broadcaster',
+                '--controller-manager-timeout', '60'
             ],
             output = 'screen'
         ),
-        # Does the following even exist?
+        ExecuteProcess(
+            # direct ros2 cmd didn't work for setting the param manually, not ideal
+            cmd = [
+                'bash', '-c',
+                'until ros2 param set /controller_manager fr3_arm_controller.type '
+                'joint_trajectory_controller/JointTrajectoryController; do sleep 1; done && '
+                f'ros2 run controller_manager spawner fr3_arm_controller '
+                f'--param-file {arm_controller} --controller-manager-timeout 60'
+            ],
+            output = 'screen'
+        ),
         #ExecuteProcess(
         #    cmd = [
         #        'ros2', 'run', 'controller_manager',
         #        'spawner', 'fr3_arm_controller',
-        #        '--controller-manager-timeout', '30'
+        #        '--controller-type', 'joint_trajectory_controller/JointTrajectoryController',
+        #        '--param-file', arm_controller,
+        #        '--controller-manager-timeout', '60'
         #    ],
         #    output = 'screen'
         #),
     ]
 
-    gz_controller = Node(
-        package = 'controller_manager',
-        executable='spawner',
-        arguments=[
-            'joint_state_broadcaster',
-            controller_name,
-            '--controller-manager-timeout', '30',
-        ],
-        parameters=[PathJoinSubstitution([
-            FindPackageShare('franka_gazebo_bringup'),
-            'config',
-            'franka_gazebo_controllers.yaml'
-        ])],
-        output='screen'
-    )
+
     gz_spawn = Node(
         package = 'ros_gz_sim',
         executable = 'create',
@@ -197,9 +202,8 @@ def generate_launch_description():
         package = 'robot_state_publisher',
         executable = 'robot_state_publisher',
         name = 'robot_state_publisher',
-        namespace = namespace,
         output = 'both',
-        parameters = [fr3_desc],
+        parameters = [fr3_desc, {'use_sim_time': True}],
     )
 
     trajectory = {'moveit_manage_controllers': True, 'trajectory_execution.allowed_execution_duration_scaling': 1.2,
@@ -208,7 +212,7 @@ def generate_launch_description():
                                     'publish_transforms_updates': True,}
 
     # currently using basic fr3 control, change yaml file to something else later
-    moveit_yaml = controllers_yaml = load_yaml('franka_fr3_moveit_config', 'config/fr3_controllers.yaml')
+    moveit_yaml = load_yaml('franka_fr3_moveit_config', 'config/fr3_controllers.yaml')
     moveit_controllers = {'moveit_simple_controller_manager': moveit_yaml,
                         'moveit_controller_manager': 'moveit_simple_controller_manager/MoveItSimpleControllerManager',}
 
@@ -218,7 +222,8 @@ def generate_launch_description():
         namespace = namespace,
         output = 'screen',
         parameters = [fr3_desc, fr3_desc_semantic, kinematics_config, joint_limits_config,
-                    ompl_planning_pipeline_config, trajectory, moveit_controllers, planning_scene_monitor_params]
+                    ompl_planning_pipeline_config, trajectory, moveit_controllers, planning_scene_monitor_params,
+                    {'use_sim_time': True}]
     )
 
 
@@ -229,23 +234,21 @@ def generate_launch_description():
         description='IP address')
 
     return LaunchDescription([
+        robot_ip_arg,
+
         robot_state_publisher,
         gz_world,
         gz_spawn,
         rosgz_bridge,
 
-        RegisterEventHandler(
-            event_handler = OnProcessExit(
-                target_action = gz_spawn,
-                on_exit = [gz_controller] + load_controllers
-            )
-        ),
-
         move_group_node,
         rviz_node,
 
-        # Arguments:
-        robot_ip_arg,
-    ])
+        RegisterEventHandler(
+            event_handler = OnProcessExit(
+                target_action = gz_spawn,
+                on_exit = load_controllers
+            )
+        ),
 
-# TODO (maybe): ip, fake hardware, sensor thing
+    ])
