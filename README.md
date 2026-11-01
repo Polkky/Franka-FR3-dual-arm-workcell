@@ -62,3 +62,8 @@ To test that franka_ros2 works:
 ros2 launch franka_fr3_moveit_config moveit.launch.py robot_ip:=dont-care use_fake_hardware:=true
 ```
 
+To run fr3dualarm_workcell moveit launch file:
+```bash
+ros2 launch fr3dualarm_workcell fr3dual_moveit_gazebo.launch.py
+```
+
