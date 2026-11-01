@@ -66,4 +66,7 @@ To run fr3dualarm_workcell moveit launch file:
 ```bash
 ros2 launch fr3dualarm_workcell fr3dual_moveit_gazebo.launch.py
 ```
+Test motion planning by checking the 'Motion planning' box and moving the robot goal state.
+Then click 'Plan' in the bottom left panel to plan the motion, and 'Execute' to accomplish the motion.
+The robot should move in both RViz and Gazebo. Planning a second time will fail due to control issues on the last joint.
 

@@ -135,14 +135,6 @@ def generate_launch_description():
         parameters = [fr3_desc, fr3_desc_semantic, ompl_planning_pipeline_config, kinematics_config,
         {'use_sim_time': True}],
     )
-    # Unused for simulation:
-    #franka_robot_state_broadcaster = Node(
-    #    package = 'controller_manager',
-    #    executable = 'spawner',
-    #    namespace = namespace,
-    #    arguments = ['franka_robot_state_broadcaster'],
-    #)
-    # May also need IP address (?) when moving to real
 
     # placeholder solution for arm controller
     arm_controller = os.path.join(
@@ -170,16 +162,6 @@ def generate_launch_description():
             ],
             output = 'screen'
         ),
-        #ExecuteProcess(
-        #    cmd = [
-        #        'ros2', 'run', 'controller_manager',
-        #        'spawner', 'fr3_arm_controller',
-        #        '--controller-type', 'joint_trajectory_controller/JointTrajectoryController',
-        #        '--param-file', arm_controller,
-        #        '--controller-manager-timeout', '60'
-        #    ],
-        #    output = 'screen'
-        #),
     ]
 
 
