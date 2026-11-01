@@ -30,7 +30,7 @@ def load_yaml(package_name, file_path):
 
 def generate_launch_description():
     robot_type = 'fr3'
-    load_gripper = 'false'
+    load_gripper = 'true'
     franka_hand = 'franka_hand'
     namespace = ''  # defaults to root
     use_fake_hardware = 'true'  # fake hardware for simulating, can add argument for toggling once working with real robots
