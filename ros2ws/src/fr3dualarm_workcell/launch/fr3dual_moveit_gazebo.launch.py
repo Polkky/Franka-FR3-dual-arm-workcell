@@ -7,10 +7,13 @@ import os
 from ament_index_python.packages import get_package_share_directory
 import xacro
 from launch_ros.actions import Node
-from launch.actions import Shutdown, DeclareLaunchArgument
+from launch.actions import Shutdown, DeclareLaunchArgument, RegisterEventHandler, IncludeLaunchDescription, ExecuteProcess
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch import LaunchDescription
 import yaml
+from launch.event_handlers import OnProcessExit
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.substitutions import FindPackageShare
 
 
 # load_yaml function from moveit.launch.py (franka_ros2/franka_fr3_moveit_config)
@@ -30,21 +33,36 @@ def generate_launch_description():
     load_gripper = 'false'
     franka_hand = 'franka_hand'
     namespace = ''  # defaults to root
-    use_fake_hardware = 'true'  # this can be changed to false once testing with real robots
-    use_fake_hardware = 'true'  # fake hardware for simulating, can add argument for toggling later
+    use_fake_hardware = 'true'  # fake hardware for simulating, can add argument for toggling once working with real robots
     fake_sensor_commands = 'true'   # same deal as fake hardware
+    controller_name = ''  # used in gazebo
 
+    # robot ip and fake args are from solo moveit franka_ros launch, may be deprecated
     robot_ip_str = 'robot_ip'   # has to be declared as an argument ?
-    robot_ip = LaunchConfiguration('robot_ip_str')
+    robot_ip = LaunchConfiguration(robot_ip_str)
 
+    # Only using gazebo xacro since it points to the same urdf.xacro anyways
     fr3_xacro_file = os.path.join(
-        get_package_share_directory('franka_bringup'),
+        get_package_share_directory('franka_gazebo_bringup'),
         'urdf',
-        'franka_arm.urdf.xacro'   # FR3 xacro file from franka_ros2
+        'franka_arm.gazebo.xacro'   # FR3 xacro file from franka_ros2
     )
-    fr3_semantic_xacro_file = os.path.join(
-        get_package_share_directory('franka_description'),
-        'robots', 'fr3', 'fr3.srdf.xacro'   # FR3 semantic xacro file from franka_ros2
+    gz_world_file = os.path.join(
+        get_package_share_directory('fr3dualarm_workcell'),
+        'worlds',
+        'workcell.sdf'
+    )
+    os.environ['GZ_SIM_RESOURCE_PATH'] = os.path.dirname(
+        get_package_share_directory('franka_description'))
+    gz_world = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([
+                FindPackageShare('ros_gz_sim'),
+                'launch',
+                'gz_sim.launch.py',
+            ])
+        ),
+        launch_arguments = {'gz_args': f'-r {gz_world_file}'}.items(),
     )
 
     fr3_desc_config = xacro.process_file(
@@ -53,13 +71,16 @@ def generate_launch_description():
             'robot_type': robot_type,
             'hand': load_gripper,
             'ee_id': franka_hand,
-            'robot_ip': robot_ip,
-            'use_fake_hardware': use_fake_hardware,
-            'fake_sensor_commands': fake_sensor_commands 
+            'gazebo_effort': 'true'
         }
     )
     fr3_desc = {'robot_description': fr3_desc_config.toxml()}
 
+    fr3_semantic_xacro_file = os.path.join(
+        get_package_share_directory('franka_description'),
+        'robots', 'fr3',
+        'fr3.srdf.xacro'
+    )
     fr3_semantic_desc_config = xacro.process_file(
         fr3_semantic_xacro_file,
         mappings={
@@ -113,45 +134,6 @@ def generate_launch_description():
         arguments = ['-d', rviz_path],
         parameters = [fr3_desc, fr3_desc_semantic, ompl_planning_pipeline_config, kinematics_config],
     )
-
-    control_path = os.path.join(
-        get_package_share_directory('franka_fr3_moveit_config'),
-        'config',
-        'fr3_ros_controllers.yaml'
-    )
-    control_node = Node(
-        package = 'controller_manager',
-        executable = 'ros2_control_node',
-        namespace = namespace,
-        parameters = [fr3_desc, control_path],
-        remappings = [('joint_states', 'franka/joint_states')],
-        output = {'stdout': 'screen', 'stderr': 'screen'},
-        on_exit = Shutdown()
-    )
-
-    arm_controller_node = Node(
-        package = 'controller_manager',
-        executable = 'spawner',
-        namespace = namespace,
-        arguments = ['fr3_arm_controller', '--controller-manager-timeout', '60', '--controller-manager',
-        PathJoinSubstitution([namespace, 'controller_manager'])],
-        output = 'screen'
-    )
-    joint_state_broadcaster = Node(
-        package = 'controller_manager',
-        executable = 'spawner',
-        namespace = namespace,
-        arguments = ['joint_state_broadcaster', '--controller-manager-timeout', '60', '--controller-manager',
-        PathJoinSubstitution([namespace, 'controller_manager'])],
-        output = 'screen'
-    )
-    joint_state_publisher = Node(
-        package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        namespace = namespace,
-        parameters = [{'source_list': ['franka/joint_states', 'franka_gripper/joint_states'], 'rate': 30}]
-    )
     # Unused for simulation:
     #franka_robot_state_broadcaster = Node(
     #    package = 'controller_manager',
@@ -160,6 +142,56 @@ def generate_launch_description():
     #    arguments = ['franka_robot_state_broadcaster'],
     #)
     # May also need IP address (?) when moving to real
+
+    load_controllers = [
+        ExecuteProcess(
+            cmd = [
+                'ros2', 'run', 'controller_manager',
+                'spawner', 'joint_state_broadcaster',
+                '--controller-manager-timeout', '30'
+            ],
+            output = 'screen'
+        ),
+        # Does the following even exist?
+        #ExecuteProcess(
+        #    cmd = [
+        #        'ros2', 'run', 'controller_manager',
+        #        'spawner', 'fr3_arm_controller',
+        #        '--controller-manager-timeout', '30'
+        #    ],
+        #    output = 'screen'
+        #),
+    ]
+
+    gz_controller = Node(
+        package = 'controller_manager',
+        executable='spawner',
+        arguments=[
+            'joint_state_broadcaster',
+            controller_name,
+            '--controller-manager-timeout', '30',
+        ],
+        parameters=[PathJoinSubstitution([
+            FindPackageShare('franka_gazebo_bringup'),
+            'config',
+            'franka_gazebo_controllers.yaml'
+        ])],
+        output='screen'
+    )
+    gz_spawn = Node(
+        package = 'ros_gz_sim',
+        executable = 'create',
+        namespace = '',
+        arguments = ['-topic', '/robot_description',
+                    '-x', '0.0', '-y', '0.5', '-z', '1.0',],     # adjust x,y,z values as needed
+        output = 'screen'
+    )
+    rosgz_bridge = Node(
+        package = 'ros_gz_bridge',
+        executable = 'parameter_bridge',
+        arguments = ['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],  # add more topics to bridge here if needed
+        output = 'screen'
+    )
 
     robot_state_publisher = Node(
         package = 'robot_state_publisher',
@@ -175,6 +207,7 @@ def generate_launch_description():
     planning_scene_monitor_params = {'publish_planning_scene': True, 'publish_geometry_updates': True, 'publish_state_updates': True,
                                     'publish_transforms_updates': True,}
 
+    # currently using basic fr3 control, change yaml file to something else later
     moveit_yaml = controllers_yaml = load_yaml('franka_fr3_moveit_config', 'config/fr3_controllers.yaml')
     moveit_controllers = {'moveit_simple_controller_manager': moveit_yaml,
                         'moveit_controller_manager': 'moveit_simple_controller_manager/MoveItSimpleControllerManager',}
@@ -196,17 +229,23 @@ def generate_launch_description():
         description='IP address')
 
     return LaunchDescription([
-        # Nodes:
-        rviz_node,
-        control_node,
-        arm_controller_node,
-        joint_state_broadcaster,
-        joint_state_publisher,
         robot_state_publisher,
+        gz_world,
+        gz_spawn,
+        rosgz_bridge,
+
+        RegisterEventHandler(
+            event_handler = OnProcessExit(
+                target_action = gz_spawn,
+                on_exit = [gz_controller] + load_controllers
+            )
+        ),
+
         move_group_node,
+        rviz_node,
+
         # Arguments:
         robot_ip_arg,
     ])
 
-
-# TODO: ip, fake hardware, sensor thing
+# TODO (maybe): ip, fake hardware, sensor thing
