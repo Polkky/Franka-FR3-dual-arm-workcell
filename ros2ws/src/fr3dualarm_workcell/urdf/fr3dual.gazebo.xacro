@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- this and other xacros follow the same format as the franka_ros2 single arm -->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fr3dual">
+
+    <!-- ARGUMENTS -->
+    <xacro:arg name="gazebo_effort" default="false"/>
+    <xacro:arg name="include_self_collision_geometry" default="false"/>
+
+    <!-- POSE -->
+    <xacro:arg name="xyz" default="0 0 0"/>
+    <xacro:arg name="rpy" default="0 0 0"/>
+
+    <!-- INCLUSIONS -->
+    <!-- ================================================================ -->
+    <!-- ros_control -->
+    <xacro:include filename="$(find fr3dualarm_workcell)/urdf/fr3dual.ros2_control.xacro"/>
+    <!-- gazebo hardware-plugin and gz_ros2_control (from franka_ros2) -->
+    <xacro:include filename="$(find franka_gazebo_bringup)/urdf/franka_gazebo_hardware_plugins.xacro"/>
+    <!-- gazebo transmissions and SDF tag macros -->
+    <xacro:include filename="$(find franka_gazebo_bringup)/urdf/franka_gazebo_transmissions.xacro"/>
+
+    <link name="world"/>
+    <joint name="world_joint" type="fixed">
+      <origin xyz="$(arg xyz)" rpy="$(arg rpy)"/>
+      <parent link="world"/>
+      <!-- <child link="${modified_prefix}$(arg robot_type)_link0"/> -->
+    </joint>
+
+    <!-- ROBOT INCLUSION (!!!) -->
+    <xacro:include filename="$(find fr3dualarm_workcell)/urdf/fr3dual.urdf.xacro"/>
+
+    <!-- gazebo transmissions -->
+    <xacro:franka_gazebo_transmissions
+        robot_type="..."
+        arm_prefix="..."
+        ee_id="..."
+        hand="..."/>
+    
+    <!-- gazebo sensors -->
+    <xacro:include filename="$(find franka_gazebo_bringup)/urdf/sensors.xacro"/>
+
+    <!-- ros2_control gazebo hardware interface -->
+    <!-- THIS NEEDS ARGS!!! -->
+    <!--
+    <xacro:franka_arm_ros2_control
+        robot_type="$(arg robot_type)"
+        include_effort_command="$(arg gazebo_effort)"
+        include_finger_joint="$(arg hand)"
+        arm_prefix="${modified_prefix}">
+      <hardware_plugin>
+        <xacro:franka_gazebo_hardware_plugin gazebo_effort="$(arg gazebo_effort)"/>
+      </hardware_plugin>
+    </xacro:franka_arm_ros2_control>
+    -->
+
+    <!-- Arm IMUs -->
+    <!--
+    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg arm_prefix)" robot_type="$(arg robot_type)" imu_side="top"/>
+    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg arm_prefix)" robot_type="$(arg robot_type)" imu_side="bottom"/>
+    -->
+
+</robot>

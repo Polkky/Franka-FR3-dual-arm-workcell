@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fr3dual">
+
+  <xacro:include filename="$(find fr3dualarm_workcell)/urdf/fr3dual.xacro"/>
+
+  <!-- these could potentially be trimmed down a lot to simplify the robot definition -->
+  <!-- Define arguments -->
+  <!-- robot model ID -->
+  <xacro:arg name="robot_type" default="fr3"/>
+
+  <!-- robot prefix -->
+  <xacro:arg name="arm_prefix" default=""/>
+  
+  <!-- bool flag for not printing prefix -->
+  <xacro:arg name="no_prefix" default="false"/>
+
+  <!-- bool flag for having the gripper/end-effector -->
+   <xacro:arg name="hand" default="true"/>
+
+  <!-- which end-effector to use if "hand" is true -->
+  <xacro:arg name="ee_id" default="franka_hand"/>
+
+  <!-- special connection for end-effector -->
+  <xacro:arg name="special_connection" default=""/>
+
+  <!-- end-effector x,y,z offset -->
+  <xacro:arg name="xyz_ee" default="0 0 0"/>
+
+  <!-- end-effector r,p,y offset -->
+  <xacro:arg name="rpy_ee" default="0 0 ${-pi/4}"/>
+
+  <!-- x,y,z offset between tcp and end-effector -->
+  <xacro:arg name="tcp_xyz" default=""/>
+
+  <!-- r,p,y offset between tcp and end-effector -->
+  <xacro:arg name="tcp_rpy" default="0 0 0"/>
+
+  <!-- safety distance for collision capsules -->
+  <xacro:arg name="safety_distance" default="0.03"/>
+
+  <!-- bool flag for allowing self collision -->
+  <xacro:arg name="with_sc" default="false"/>
+
+  <!-- Emit the coarse self-collision capsule geometry inside the *_sc sub-links? -->
+  <xacro:arg name="include_self_collision_geometry" default="true"/>
+
+  <!-- frame that the robot base is attached to -->
+  <xacro:arg name="connected_to" default="base"/>
+
+  <!-- description package -->
+  <xacro:arg name="description_pkg" default="franka_description"/>
+
+  <!-- Append an underscore to the user-provided prefix, if non-empty. -->
+  <!-- <xacro:property name="prefix" value="$(arg arm_prefix)"/> -->
+  <!-- <xacro:property name="modified_prefix" value="${prefix + '_' if prefix else ''}"/> -->
+
+  <!-- x,y,z offset with the world -->
+  <xacro:arg name="xyz" default="0 0 0"/>
+
+  <!-- r,p,y offset with the world -->
+  <xacro:arg name="rpy" default="0 0 0"/>
+
+  <xacro:fr3dual robot_type="fr3dual"
+    arm_prefix="$(arg arm_prefix)"
+    no_prefix="$(arg no_prefix)"
+    hand="$(arg hand)"
+    ee_id="$(arg ee_id)"
+    special_connection="$(arg special_connection)"
+    xyz_ee="$(arg xyz_ee)"
+    rpy_ee="$(arg rpy_ee)"
+    tcp_xyz="$(arg tcp_xyz)"
+    tcp_rpy="$(arg tcp_rpy)"
+    safety_distance="$(arg safety_distance)"
+    with_sc="$(arg with_sc)"
+    include_self_collision_geometry="$(arg include_self_collision_geometry)"
+    connected_to="${base_mount_str}"
+    description_pkg="$(arg description_pkg)">
+  </xacro:fr3dual>
+
+</robot>
