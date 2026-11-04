@@ -2,8 +2,13 @@
 
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
+  <!-- take the franka_robot.xacro and make our adjustments on top of that -->
   <xacro:include filename="$(find franka_description)/robots/common/franka_robot.xacro"/>
 
+  <!-- most things can be hardcoded to be the same across the two robots -->
+  <!-- notably arm_prefix has to be different and is used to automatically assign names -->
+  <!-- it is replaced by separate params for left and right -->
+  <!-- offsets for each robot are also hardcoded, both attached to same base (parent/world) link -->
   <xacro:macro name="fr3dual"
                params="robot_type
                        hand:='true'
@@ -12,16 +17,50 @@
                        include_self_collision_geometry:='true'
                        with_sc:='false'
                        no_prefix:=false
-                       arm_prefix:=''
+                       left_prefix:='left'
+                       right_prefix:='right'
                        description_pkg:='franka_description'
-                       connected_to:='base'
+                       connected_to
                        parent:='world'
-                       xyz:='0 0 0'
-                       rpy:='0 0 0'
+                       left_xyz:='0 0 0'
+                       left_rpy:='0 0 0'
+                       right_xyz:='0 0 0'
+                       right_rpy:='0 0 0'
                        xyz_ee:='0 0 0'
                        rpy_ee:='0 0 0'
                        tcp_xyz:=''
                        tcp_rpy:='0 0 0'
                        safety_distance:='0.03'">
 
+    <xacro:macro name="dual_arm"
+                 params="prefix
+                         xyz
+                         rpy">
+
+      <xacro:franka_robot
+        robot_type="${robot_type}"
+        hand:="${hand}"
+        ee_id:="${ee_id}"
+        special_connection:="${special_connection}"
+        include_self_collision_geometry:="${include_self_collision_geometry}"
+        with_sc:="${with_sc}"
+        no_prefix:="${no_prefix}"
+        arm_prefix:="${prefix}_"
+        description_pkg:="${description_pkg}"
+        connected_to:="${prefix}_base"
+        parent:="${parent}"
+        xyz:="${xyz}"
+        rpy:="${rpy}"
+        xyz_ee:="${xyz_ee}"
+        rpy_ee:="${rpy_ee}"
+        tcp_xyz:="${tcp_xyz}"
+        tcp_rpy:="${tcp_rpy}"
+        safety_distance:="${safety_distance}">
+      </xacro:franka_robot>
+    </xacro:macro>
+
+    <xacro:dual_arm prefix="${left_prefix}" xyz="${left_xyz}" rpy="${left_rpy}"/>
+    <xacro:dual_arm prefix="${right_prefix}" xyz="${right_xyz}" rpy="${right_rpy}"/>
+
+  </xacro:macro>
 </robot>
