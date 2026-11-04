@@ -4,13 +4,13 @@
 
   <xacro:include filename="$(find fr3dualarm_workcell)/urdf/fr3dual.xacro"/>
 
-  <!-- these could potentially be trimmed down a lot to simplify the robot definition -->
   <!-- Define arguments -->
   <!-- robot model ID -->
   <xacro:arg name="robot_type" default="fr3"/>
 
-  <!-- robot prefix -->
-  <xacro:arg name="arm_prefix" default=""/>
+  <!-- robot prefixes for left and right -->
+  <xacro:arg name="left_prefix" default="left"/>
+  <xacro:arg name="right_prefix" default="right"/>
   
   <!-- bool flag for not printing prefix -->
   <xacro:arg name="no_prefix" default="false"/>
@@ -51,22 +51,32 @@
   <!-- description package -->
   <xacro:arg name="description_pkg" default="franka_description"/>
 
-  <!-- Append an underscore to the user-provided prefix, if non-empty. -->
-  <!-- <xacro:property name="prefix" value="$(arg arm_prefix)"/> -->
-  <!-- <xacro:property name="modified_prefix" value="${prefix + '_' if prefix else ''}"/> -->
+  <!-- left xyz and rpy offset with the world -->
+  <xacro:arg name="left_xyz" default="0 0 0"/>
+  <xacro:arg name="left_rpy" default="0 0 0"/>
 
-  <!-- x,y,z offset with the world -->
-  <xacro:arg name="xyz" default="0 0 0"/>
+  <!-- right robot xyz and rpy offset with the world -->
+  <xacro:arg name="right_xyz" default="0 0 0"/>
+  <xacro:arg name="right_rpy" default="0 0 0"/>
 
-  <!-- r,p,y offset with the world -->
-  <xacro:arg name="rpy" default="0 0 0"/>
+  <!-- frame to which we attach the robot -->
+  <xacro:arg name="base_mount" default="base"/>
+  <xacro:property name="base_mount_str" value="${arg base_mount}"/>
+  <xacro:if value="${base_mount_str == 'base'}">
+    <link name="${base_mount_str}"/>
+  <xacro:if>
 
-  <xacro:fr3dual robot_type="fr3dual"
-    arm_prefix="$(arg arm_prefix)"
+  <xacro:fr3dual robot_type="$(robot_type)"
+    left_prefix="$(arg left_prefix)"
+    right_prefix="$(arg right_prefix)"
     no_prefix="$(arg no_prefix)"
     hand="$(arg hand)"
     ee_id="$(arg ee_id)"
     special_connection="$(arg special_connection)"
+    left_xyz="$(arg left_xyz)"
+    left_rpy="$(arg left_rpy)"
+    right_xyz="$(arg right_xyz)"
+    right_rpy="$(arg right_rpy)"
     xyz_ee="$(arg xyz_ee)"
     rpy_ee="$(arg rpy_ee)"
     tcp_xyz="$(arg tcp_xyz)"

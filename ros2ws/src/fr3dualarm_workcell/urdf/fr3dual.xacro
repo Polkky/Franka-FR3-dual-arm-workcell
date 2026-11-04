@@ -39,23 +39,23 @@
 
       <xacro:franka_robot
         robot_type="${robot_type}"
-        hand:="${hand}"
-        ee_id:="${ee_id}"
-        special_connection:="${special_connection}"
-        include_self_collision_geometry:="${include_self_collision_geometry}"
-        with_sc:="${with_sc}"
-        no_prefix:="${no_prefix}"
-        arm_prefix:="${prefix}_"
-        description_pkg:="${description_pkg}"
-        connected_to:="${prefix}_base"
-        parent:="${parent}"
-        xyz:="${xyz}"
-        rpy:="${rpy}"
-        xyz_ee:="${xyz_ee}"
-        rpy_ee:="${rpy_ee}"
-        tcp_xyz:="${tcp_xyz}"
-        tcp_rpy:="${tcp_rpy}"
-        safety_distance:="${safety_distance}">
+        hand="${hand}"
+        ee_id="${ee_id}"
+        special_connection="${special_connection}"
+        include_self_collision_geometry="${include_self_collision_geometry}"
+        with_sc="${with_sc}"
+        no_prefix="${no_prefix}"
+        arm_prefix="${prefix}_"
+        description_pkg="${description_pkg}"
+        connected_to="${connected_to}"
+        parent="${parent}"
+        xyz="${xyz}"
+        rpy="${rpy}"
+        xyz_ee="${xyz_ee}"
+        rpy_ee="${rpy_ee}"
+        tcp_xyz="${tcp_xyz}"
+        tcp_rpy="${tcp_rpy}"
+        safety_distance="${safety_distance}">
       </xacro:franka_robot>
     </xacro:macro>
 
