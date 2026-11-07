@@ -4,6 +4,12 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fr3dual">
 
     <!-- ARGUMENTS -->
+    <xacro:arg name="robot_type" default="fr3"/>
+    <xacro:arg name="left_prefix" default="left"/>
+    <xacro:arg name="right_prefix" default="right"/>
+    <xacro:arg name="hand" default="true"/>
+    <xacro:arg name="ee_id" default="franka_hand"/>
+
     <xacro:arg name="gazebo_effort" default="false"/>
     <xacro:arg name="include_self_collision_geometry" default="false"/>
 
@@ -20,44 +26,60 @@
     <!-- gazebo transmissions and SDF tag macros -->
     <xacro:include filename="$(find franka_gazebo_bringup)/urdf/franka_gazebo_transmissions.xacro"/>
 
+    <xacro:property name="L_prefix" value="$(arg left_prefix)"/>
+    <xacro:property name="R_prefix" value="$(arg right_prefix)"/>
+
     <link name="world"/>
-    <joint name="world_joint" type="fixed">
-      <origin xyz="$(arg xyz)" rpy="$(arg rpy)"/>
-      <parent link="world"/>
-      <!-- <child link="${modified_prefix}$(arg robot_type)_link0"/> -->
-    </joint>
 
     <!-- ROBOT INCLUSION (!!!) -->
     <xacro:include filename="$(find fr3dualarm_workcell)/urdf/fr3dual.urdf.xacro"/>
 
-    <!-- gazebo transmissions -->
+    <!-- gazebo transmissions, one for each arm -->
     <xacro:franka_gazebo_transmissions
-        robot_type="..."
-        arm_prefix="..."
-        ee_id="..."
-        hand="..."/>
+        robot_type="$(arg robot_type)"
+        arm_prefix="${L_prefix}"
+        ee_id="$(arg ee_id)"
+        hand="$(arg hand)"/>
+
+    <xacro:franka_gazebo_transmissions
+        robot_type="$(arg robot_type)"
+        arm_prefix="${R_prefix}"
+        ee_id="$(arg ee_id)"
+        hand="$(arg hand)"/>
     
     <!-- gazebo sensors -->
     <xacro:include filename="$(find franka_gazebo_bringup)/urdf/sensors.xacro"/>
 
-    <!-- ros2_control gazebo hardware interface -->
-    <!-- THIS NEEDS ARGS!!! -->
-    <!--
+    <!-- ros2_control gazebo hardware interface, one for each arm -->
     <xacro:franka_arm_ros2_control
         robot_type="$(arg robot_type)"
+        arm_prefix="$(arg left_prefix)"
+        control_name="left_FrankaHardwareInterface"
         include_effort_command="$(arg gazebo_effort)"
-        include_finger_joint="$(arg hand)"
-        arm_prefix="${modified_prefix}">
+        include_finger_joint="$(arg hand)">
       <hardware_plugin>
         <xacro:franka_gazebo_hardware_plugin gazebo_effort="$(arg gazebo_effort)"/>
       </hardware_plugin>
     </xacro:franka_arm_ros2_control>
-    -->
+    <xacro:franka_gazebo_ros2_control_system/>
+
+    <xacro:franka_arm_ros2_control
+        robot_type="$(arg robot_type)"
+        arm_prefix="$(arg right_prefix)"
+        control_name="right_FrankaHardwareInterface"
+        include_effort_command="$(arg gazebo_effort)"
+        include_finger_joint="$(arg hand)">
+      <hardware_plugin>
+        <xacro:franka_gazebo_hardware_plugin gazebo_effort="$(arg gazebo_effort)"/>
+      </hardware_plugin>
+    </xacro:franka_arm_ros2_control>
+    <xacro:franka_gazebo_ros2_control_system/>
 
     <!-- Arm IMUs -->
-    <!--
-    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg arm_prefix)" robot_type="$(arg robot_type)" imu_side="top"/>
-    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg arm_prefix)" robot_type="$(arg robot_type)" imu_side="bottom"/>
-    -->
+    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg left_prefix)" robot_type="$(arg robot_type)" imu_side="top"/>
+    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg left_prefix)" robot_type="$(arg robot_type)" imu_side="bottom"/>
+
+    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg right_prefix)" robot_type="$(arg robot_type)" imu_side="top"/>
+    <xacro:franka_gazebo_arm_imus arm_prefix="$(arg right_prefix)" robot_type="$(arg robot_type)" imu_side="bottom"/>
 
 </robot>

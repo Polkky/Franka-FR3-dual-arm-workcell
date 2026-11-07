@@ -64,9 +64,9 @@
   <xacro:property name="base_mount_str" value="${arg base_mount}"/>
   <xacro:if value="${base_mount_str == 'base'}">
     <link name="${base_mount_str}"/>
-  <xacro:if>
+  </xacro:if>
 
-  <xacro:fr3dual robot_type="$(robot_type)"
+  <xacro:fr3dual robot_type="$(arg robot_type)"
     left_prefix="$(arg left_prefix)"
     right_prefix="$(arg right_prefix)"
     no_prefix="$(arg no_prefix)"

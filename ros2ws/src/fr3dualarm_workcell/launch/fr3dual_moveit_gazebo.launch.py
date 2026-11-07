@@ -43,9 +43,9 @@ def generate_launch_description():
 
     # Only using gazebo xacro since it points to the same urdf.xacro anyways
     fr3_xacro_file = os.path.join(
-        get_package_share_directory('franka_gazebo_bringup'),
+        get_package_share_directory('fr3dualarm_workcell'),
         'urdf',
-        'franka_arm.gazebo.xacro'   # FR3 xacro file from franka_ros2
+        'fr3dual.gazebo.xacro'   # FR3 xacro file from franka_ros2
     )
     gz_world_file = os.path.join(
         get_package_share_directory('fr3dualarm_workcell'),
