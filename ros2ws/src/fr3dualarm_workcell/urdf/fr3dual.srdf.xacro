@@ -4,30 +4,75 @@
 
   <xacro:include filename="$(find franka_description)/robots/common/franka_arm.srdf.xacro"/>
 
-  <!-- robot model ID -->
   <xacro:arg name="robot_type" default="fr3"/>
 
-  <!-- robot prefix -->
-  <xacro:arg name="arm_prefix" default=""/>
-  
-  <!-- bool flag for not printing prefix -->
-  <xacro:arg name="no_prefix" default="false"/>
-
   <!-- bool flag for having the gripper/end-effector -->
-   <xacro:arg name="hand" default="true"/>
+  <xacro:arg name="hand" default="true"/>
 
   <!-- which end-effector to use if "hand" is true -->
   <xacro:arg name="ee_id" default="franka_hand"/>
 
-  <!-- Append an underscore to the user-provided prefix, if non-empty. -->
-  <!-- <xacro:property name="prefix" value="$(arg arm_prefix)"/> -->
-  <!-- <xacro:property name="modified_prefix" value="${prefix + '_' if prefix else ''}"/> -->
+  <xacro:arg name="left_prefix" default="left"/>
+  <xacro:arg name="right_prefix" default="right"/>
 
-  <xacro:franka_arm_srdf robot_type="$(arg robot_type)"
-                      hand="$(arg hand)"
-                      ee_id="$(arg ee_id)"
-                      no_prefix="$(arg no_prefix)"
-                      arm_prefix="${modified_prefix}">
-  </xacro:franka_arm_srdf>
+  <xacro:macro name="missing_self_arm_collisions" params="full_arm_prefix">
+      <disable_collisions link1="${full_arm_prefix}link0" link2="${full_arm_prefix}link5" reason="UserDisable"/>
+      <disable_collisions link1="${full_arm_prefix}link0" link2="${full_arm_prefix}link6" reason="UserDisable"/>
+      <disable_collisions link1="${full_arm_prefix}link0" link2="${full_arm_prefix}link7" reason="UserDisable"/>
+
+      <disable_collisions link1="${full_arm_prefix}link1" link2="${full_arm_prefix}link5" reason="UserDisable"/>
+      <disable_collisions link1="${full_arm_prefix}link1" link2="${full_arm_prefix}link6" reason="UserDisable"/>
+      <disable_collisions link1="${full_arm_prefix}link1" link2="${full_arm_prefix}link7" reason="UserDisable"/>
+
+      <disable_collisions link1="${full_arm_prefix}link2" link2="${full_arm_prefix}link5" reason="UserDisable"/>
+      <disable_collisions link1="${full_arm_prefix}link2" link2="${full_arm_prefix}link7" reason="UserDisable"/>
+
+      <xacro:if value="$(arg hand)">
+          <xacro:if value="${'$(arg ee_id)' == 'franka_hand'}">
+              <disable_collisions link1="${full_arm_prefix}link0" link2="${full_arm_prefix}hand" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link0" link2="${full_arm_prefix}leftfinger" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link0" link2="${full_arm_prefix}rightfinger" reason="UserDisable"/>
+
+              <disable_collisions link1="${full_arm_prefix}link1" link2="${full_arm_prefix}hand" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link1" link2="${full_arm_prefix}leftfinger" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link1" link2="${full_arm_prefix}rightfinger" reason="UserDisable"/>
+
+              <disable_collisions link1="${full_arm_prefix}link2" link2="${full_arm_prefix}hand" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link2" link2="${full_arm_prefix}leftfinger" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link2" link2="${full_arm_prefix}rightfinger" reason="UserDisable"/>
+
+              <disable_collisions link1="${full_arm_prefix}link5" link2="${full_arm_prefix}hand" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link5" link2="${full_arm_prefix}leftfinger" reason="UserDisable"/>
+              <disable_collisions link1="${full_arm_prefix}link5" link2="${full_arm_prefix}rightfinger" reason="UserDisable"/>
+          </xacro:if>
+      </xacro:if>
+  </xacro:macro>
+
+  <xacro:property name="robot_type" value="$(arg robot_type)"/>
+  <xacro:property name="left_prefix" value="$(arg left_prefix)"/>
+  <xacro:property name="right_prefix" value="$(arg right_prefix)"/>
+
+  <!-- separate semantic definitions for left and right -->
+  <xacro:franka_arm_srdf robot_type="${robot_type}"
+                         hand="${arg hand}"
+                         ee_id="${arg ee_id}"
+                         arm_prefix="${left_prefix}"
+                         no_prefix="false"/>
+  <xacro:missing_self_arm_collisions full_arm_prefix="${left_prefix}${robot_type}_"/>
+
+  <xacro:franka_arm_srdf robot_type="${robot_type}"
+                         hand="${arg hand}"
+                         ee_id="${arg ee_id}"
+                         arm_prefix="${right_prefix}"
+                         no_prefix="false"/>
+  <xacro:missing_self_arm_collisions full_arm_prefix="${right_prefix}${robot_type}_"/>
+
+  <!-- not exactly sure what this does? disables certain collisions for a link maybe -->
+  <xacro:macro name="cross_arm_loop" params="left_idx right_idx_start right_idx_end">
+      <disable_collisions link1="${left_prefix}${robot_type}_link${left_idx}" link2="${right_prefix}${robot_type}_link${right_idx_start}" reason="Never"/>
+            <xacro:if value="${right_idx_start &lt; right_idx_end}">
+                <xacro:cross_arm_loop left_idx="${left_idx}" right_idx_start="${right_idx_start + 1}" right_idx_end="${right_idx_end}"/>
+            </xacro:if>
+  </xacro:macro>
 
 </robot>

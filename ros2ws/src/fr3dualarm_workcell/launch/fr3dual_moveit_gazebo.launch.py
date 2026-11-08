@@ -77,9 +77,9 @@ def generate_launch_description():
     fr3_desc = {'robot_description': fr3_desc_config.toxml()}
 
     fr3_semantic_xacro_file = os.path.join(
-        get_package_share_directory('franka_description'),
-        'robots', 'fr3',
-        'fr3.srdf.xacro'
+        get_package_share_directory('fr3dualarm_workcell'),
+        'urdf',
+        'fr3dual.srdf.xacro'
     )
     fr3_semantic_desc_config = xacro.process_file(
         fr3_semantic_xacro_file,
