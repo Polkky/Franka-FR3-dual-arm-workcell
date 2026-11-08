@@ -30,6 +30,11 @@
     <xacro:property name="R_prefix" value="$(arg right_prefix)"/>
 
     <link name="world"/>
+    <joint name="world_joint" type="fixed">
+      <origin xyz="$(arg xyz)" rpy="$(arg rpy)"/>
+      <parent link="world"/>
+      <child link="base"/>
+    </joint>
 
     <!-- ROBOT INCLUSION (!!!) -->
     <xacro:include filename="$(find fr3dualarm_workcell)/urdf/fr3dual.urdf.xacro"/>

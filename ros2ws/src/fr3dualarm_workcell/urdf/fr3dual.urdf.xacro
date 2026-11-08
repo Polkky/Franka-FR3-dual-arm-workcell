@@ -56,7 +56,7 @@
   <xacro:arg name="left_rpy" default="0 0 0"/>
 
   <!-- right robot xyz and rpy offset with the world -->
-  <xacro:arg name="right_xyz" default="0 0 0"/>
+  <xacro:arg name="right_xyz" default="1.0 1.0 0"/>
   <xacro:arg name="right_rpy" default="0 0 0"/>
 
   <!-- frame to which we attach the robot -->
