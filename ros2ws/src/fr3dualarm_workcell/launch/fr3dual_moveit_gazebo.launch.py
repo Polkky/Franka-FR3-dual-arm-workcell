@@ -90,12 +90,13 @@ def generate_launch_description():
     )
     fr3_desc_semantic = {'robot_description_semantic': fr3_semantic_desc_config.toxml()}
 
-    kinematics_yaml = load_yaml('franka_fr3_moveit_config', 'config/kinematics.yaml')
+    # dual .yaml configs are the same as single arm franka_ros2 except with separate left/right definitions
+    kinematics_yaml = load_yaml('fr3dualarm_workcell', 'config/fr3dual_kinematics.yaml')
     kinematics_config = {
         'robot_description_kinematics': kinematics_yaml
     }
 
-    joint_limits_yaml = load_yaml('franka_fr3_moveit_config', 'config/fr3_joint_limits.yaml')
+    joint_limits_yaml = load_yaml('fr3dualarm_workcell', 'config/fr3dual_jointlimits.yaml')
     joint_limits_config = {
         'robot_description_planning': joint_limits_yaml
     }
@@ -170,7 +171,7 @@ def generate_launch_description():
         executable = 'create',
         namespace = '',
         arguments = ['-topic', '/robot_description',
-                    '-x', '0.0', '-y', '0.5', '-z', '1.0',],     # adjust x,y,z values as needed
+                    '-x', '0.0', '-y', '0.0', '-z', '1.0',],     # dual arms base coordinates
         output = 'screen'
     )
     rosgz_bridge = Node(
