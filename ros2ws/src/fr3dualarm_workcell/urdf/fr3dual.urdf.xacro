@@ -61,7 +61,7 @@
 
   <!-- frame to which we attach the robot -->
   <xacro:arg name="base_mount" default="base"/>
-  <xacro:property name="base_mount_str" value="${arg base_mount}"/>
+  <xacro:property name="base_mount_str" value="$(arg base_mount)"/>
   <xacro:if value="${base_mount_str == 'base'}">
     <link name="${base_mount_str}"/>
   </xacro:if>

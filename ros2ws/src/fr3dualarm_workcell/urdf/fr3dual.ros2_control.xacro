@@ -12,7 +12,7 @@
             arm_prefix:=''
             is_async:=false
             thread_priority:=98
-            control_name:=${arm_prefix}FrankaHardwareInterface
+            control_name:=FrankaHardwareInterface
             **hardware_plugin">
         
     <ros2_control name="${control_name}" type="system" is_async="${is_async}">

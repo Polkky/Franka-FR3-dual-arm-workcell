@@ -51,28 +51,28 @@
     <xacro:include filename="$(find franka_gazebo_bringup)/urdf/sensors.xacro"/>
 
     <!-- ros2_control gazebo hardware interface, one for each arm -->
-    <xacro:franka_arm_ros2_control
+    <xacro:fr3dual_ros2_control
         robot_type="$(arg robot_type)"
-        arm_prefix="$(arg left_prefix)"
+        arm_prefix="$(arg left_prefix)_"
         control_name="left_FrankaHardwareInterface"
         include_effort_command="$(arg gazebo_effort)"
         include_finger_joint="$(arg hand)">
       <hardware_plugin>
         <xacro:franka_gazebo_hardware_plugin gazebo_effort="$(arg gazebo_effort)"/>
       </hardware_plugin>
-    </xacro:franka_arm_ros2_control>
+    </xacro:fr3dual_ros2_control>
     <xacro:franka_gazebo_ros2_control_system/>
 
-    <xacro:franka_arm_ros2_control
+    <xacro:fr3dual_ros2_control
         robot_type="$(arg robot_type)"
-        arm_prefix="$(arg right_prefix)"
+        arm_prefix="$(arg right_prefix)_"
         control_name="right_FrankaHardwareInterface"
         include_effort_command="$(arg gazebo_effort)"
         include_finger_joint="$(arg hand)">
       <hardware_plugin>
         <xacro:franka_gazebo_hardware_plugin gazebo_effort="$(arg gazebo_effort)"/>
       </hardware_plugin>
-    </xacro:franka_arm_ros2_control>
+    </xacro:fr3dual_ros2_control>
     <xacro:franka_gazebo_ros2_control_system/>
 
     <!-- Arm IMUs -->
