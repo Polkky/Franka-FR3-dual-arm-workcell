@@ -47,7 +47,7 @@
         no_prefix="${no_prefix}"
         arm_prefix="${prefix}_"
         description_pkg="${description_pkg}"
-        connected_to="${connected_to}"
+        connected_to="${prefix}_base"
         parent="${parent}"
         xyz="${xyz}"
         rpy="${rpy}"
@@ -60,7 +60,16 @@
     </xacro:macro>
 
     <xacro:dual_arm prefix="${left_prefix}" xyz="${left_xyz}" rpy="${left_rpy}"/>
+    <joint name="${left_prefix}_base_joint" type="fixed">
+      <parent link="${connected_to}"/>
+      <child link="${left_prefix}_base"/>
+    </joint>
+
     <xacro:dual_arm prefix="${right_prefix}" xyz="${right_xyz}" rpy="${right_rpy}"/>
+    <joint name="${right_prefix}_base_joint" type="fixed">
+      <parent link="${connected_to}"/>
+      <child link="${right_prefix}_base"/>
+    </joint>
 
   </xacro:macro>
 </robot>
