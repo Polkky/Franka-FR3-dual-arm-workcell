@@ -122,10 +122,11 @@ def generate_launch_description():
     ompl_planning_pipeline_config['move_group'].update(ompl_planning_yaml)
 
 
+    # own rviz file for a couple of small changes just in case
     rviz_path = os.path.join(
-        get_package_share_directory('franka_fr3_moveit_config'),
+        get_package_share_directory('fr3dualarm_workcell'),
         'rviz',
-        'moveit.rviz'
+        'fr3dual_moveit.rviz'
     )
     rviz_node = Node(
         package = 'rviz2',
@@ -199,6 +200,7 @@ def generate_launch_description():
     moveit_controllers = {'moveit_simple_controller_manager': moveit_yaml,
                         'moveit_controller_manager': 'moveit_simple_controller_manager/MoveItSimpleControllerManager',}
 
+    # one node will create two move groups for separate planning between arms
     move_group_node = Node(
         package = 'moveit_ros_move_group',
         executable = 'move_group',
@@ -211,6 +213,7 @@ def generate_launch_description():
 
 
     # ARGUMENT DECLARATIONS
+    # robot ips unused, may need to be used for real-world cell
     robot_ip_arg = DeclareLaunchArgument(
         robot_ip_str,
         default_value = 'dont-care',     # dont-care works for simulation
