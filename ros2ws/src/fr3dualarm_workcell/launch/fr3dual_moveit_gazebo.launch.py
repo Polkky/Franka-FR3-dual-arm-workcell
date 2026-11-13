@@ -138,7 +138,7 @@ def generate_launch_description():
         {'use_sim_time': True}],
     )
 
-    # placeholder solution for arm controller
+    # arm_controller may need some changes later
     arm_controller = os.path.join(
         get_package_share_directory('fr3dualarm_workcell'),
         'config',
@@ -155,12 +155,23 @@ def generate_launch_description():
         ),
         ExecuteProcess(
             # direct ros2 cmd didn't work for setting the param manually, not ideal
+            # has a simple 'do sleep 3' to make sure initialization is properly finished, also not ideal
             cmd = [
                 'bash', '-c',
-                'until ros2 param set /controller_manager fr3_arm_controller.type '
+                'until ros2 param set /controller_manager left_fr3_arm_controller.type '
+                'joint_trajectory_controller/JointTrajectoryController; do sleep 3; done && '
+                f'ros2 run controller_manager spawner left_fr3_arm_controller '
+                f'--param-file {arm_controller} --controller-manager-timeout 60 '
+            ],
+            output = 'screen'
+        ),
+        ExecuteProcess(
+            cmd = [
+                'bash', '-c',
+                'until ros2 param set /controller_manager right_fr3_arm_controller.type '
                 'joint_trajectory_controller/JointTrajectoryController; do sleep 1; done && '
-                f'ros2 run controller_manager spawner fr3_arm_controller '
-                f'--param-file {arm_controller} --controller-manager-timeout 60'
+                f'ros2 run controller_manager spawner right_fr3_arm_controller '
+                f'--param-file {arm_controller} --controller-manager-timeout 60 '
             ],
             output = 'screen'
         ),
@@ -196,7 +207,7 @@ def generate_launch_description():
                                     'publish_transforms_updates': True,}
 
     # currently using basic fr3 control, change yaml file to something else later
-    moveit_yaml = load_yaml('franka_fr3_moveit_config', 'config/fr3_controllers.yaml')
+    moveit_yaml = load_yaml('fr3dualarm_workcell', 'config/fr3dual_moveitcontroller.yaml')
     moveit_controllers = {'moveit_simple_controller_manager': moveit_yaml,
                         'moveit_controller_manager': 'moveit_simple_controller_manager/MoveItSimpleControllerManager',}
 

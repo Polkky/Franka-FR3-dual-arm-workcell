@@ -51,12 +51,14 @@
   <!-- description package -->
   <xacro:arg name="description_pkg" default="franka_description"/>
 
+  <!-- !!! THIS IS WHERE THE XYZ OFFSETS OF THE ROBOTS ARE HARDCODED !!! -->
   <!-- left xyz and rpy offset with the world -->
-  <xacro:arg name="left_xyz" default="0 0 0"/>
+  <xacro:arg name="left_xyz" default="0 -0.2 0"/>
   <xacro:arg name="left_rpy" default="0 0 0"/>
 
+  <!-- !!! THIS IS WHERE THE XYZ OFFSETS OF THE ROBOTS ARE HARDCODED !!! -->
   <!-- right robot xyz and rpy offset with the world -->
-  <xacro:arg name="right_xyz" default="1.0 1.0 0"/>
+  <xacro:arg name="right_xyz" default="0 0.2 0"/>
   <xacro:arg name="right_rpy" default="0 0 0"/>
 
   <!-- frame to which we attach the robot -->
